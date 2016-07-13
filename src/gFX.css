@@ -1,0 +1,59 @@
+
+#Reset{
+    -fx-background-image: url("tree.jpg");
+    -fx-text-fill: white;
+
+}
+
+#Restart{
+    -fx-background-image: url("tree.jpg");
+    -fx-text-fill: white;
+
+}
+
+#Exit{
+    -fx-background-image: url("tree.jpg");
+    -fx-text-fill: white;
+
+}
+#Put{
+    -fx-background-image: url("tree.jpg");
+    -fx-text-fill: white;
+
+
+}
+#RBOX{
+    -fx-background-image: url("tree.jpg");
+
+}
+#LBOX{
+    -fx-background-image: url("tree.jpg");
+
+}
+
+#BBOX{
+    -fx-background-image: url("tree.jpg");
+
+}
+
+#Output{
+    -fx-background-image: url("tree.jpg");
+
+}
+
+.label{
+    -fx-text-fill: white;
+}
+
+.button{
+    -fx-background-image: url("tree.jpg");
+    -fx-text-fill: white;
+}
+
+#NotFound{
+    -fx-text-fill: red;
+}
+/*linear-gradient(from 0% 20% to 0% 80%,orange,coral);
+-fx-background-color: linear-gradient(to bottom,orange,red);
+
+*/

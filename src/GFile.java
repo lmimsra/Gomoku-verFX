@@ -60,22 +60,31 @@ public class GFile {
 		File file = new File(input);
 		Fread = new BufferedReader(new FileReader(file));
 		String str;
+		int inputI;
 		//System.out.println("1: "+Fread.readLine());
 		//System.out.println("2: "+Fread.readLine());
 
 		try {
 			frame.drawF();
 			if (Fread.readLine().equals("GomokuFX")) {
-				frame.setJun(Integer.parseInt(Fread.readLine()));
+				int Jun = Integer.parseInt(Fread.readLine());
+				frame.gc.clearRect(0,0,600,600);
 				for (int i = 0; i < frame.getMasu(); i++) {
 					for (int j = 0; j < frame.getMasu(); j++) {
 						str = Fread.readLine();
-						frame.Arr[i][j] = Integer.parseInt(str);
-						frame.drawS(i, j);
+						inputI = Integer.parseInt(str);
+						if (inputI != -1) {
+							frame.setJun(inputI);
+							frame.drawS(i, j, frame.gc);
+						}
+
+						frame.Arr[i][j] = inputI;
+
 
 					}
 
 				}
+				frame.setJun(Jun);
 			}
 		} catch (Exception e) {
 			Alert alert = new Alert(Alert.AlertType.WARNING, "", ButtonType.OK);

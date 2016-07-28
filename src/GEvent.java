@@ -1,25 +1,31 @@
-
-import javafx.application.Platform;
-import javafx.concurrent.ScheduledService;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
+import com.sun.javafx.geom.Path2D;
+import com.sun.org.glassfish.gmbal.ParameterNames;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
+import javafx.scene.shape.PathElement;
 import javafx.scene.text.Font;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 
-import java.time.LocalTime;
 import java.util.Optional;
 
 /**
@@ -27,7 +33,20 @@ import java.util.Optional;
  */
 
 
-public class GEvent implements EventHandler<MouseEvent>,Runnable {
+public class GEvent implements EventHandler<MouseEvent> {
+	private int Bcount = 0;  //黒の手数
+	private int BTcount = 0;  //黒の総手数
+	private int BFeel = 0;    //黒の自信総和
+	private double BFAve = 0;
+	private double BTAve = 0;
+
+	private int Wcount = 0;  //白の手数
+	private int WTcount = 0;  //白の総手数
+	private int WFeel = 0;    //白の自信総和
+	private double WFAve = 0;
+	private double WTAve = 0;
+
+
 	GJudge Jud;
 	GFrame frame;
 	Alert winner;
@@ -40,7 +59,21 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 	Stage HowStage;
 	Button cancel;
 	Button[] g;
+	Slider slider;
+	Canvas grades;
+	GraphicsContext gc;
 
+	//リザルトステージ
+	Stage ResultStage;
+	Button next;
+	Label winnerL = new Label("");
+	Label ResultL = new Label("");
+	Label b1 = new Label("");
+	Label b2 = new Label("");
+	Label b3 = new Label("");
+	Label w1 = new Label("");
+	Label w2 = new Label("");
+	Label w3 = new Label("");
 
 	GEvent(GFrame f) {
 		frame = f;
@@ -49,61 +82,54 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 		counts = 1;
 		pX = pY = 0;
 		createStage();
-
-		Service<Void> serviceK = new Service<Void>() {
-
-			@Override
-			protected Task<Void> createTask() {
-				Task<Void> task = new Task<Void>() {
-					@Override
-					protected Void call() throws Exception {
-
-						Thread.sleep(1000);
-
-
-						System.out.println("起動ちゅう");
-
-					//	Platform.runLater(() -> );
-
-						return null;
-					}
-				};
-
-				return task;
-			}
-		};
-		serviceK.start();
-
+		PopResult();
 	}
 
 	@Override
 	public void handle(MouseEvent event) {
+		if (event.getEventType().toString() == "MOUSE_MOVED") System.out.println("aaaa");
 		int x, y;
-		int win = 4;    //勝利判定用変数
 		x = Msearchx(event.getX());
 		y = Msearchy(event.getY());
-		//置けるか判定
-		if (frame.Arr[x][y] == frame.getJun() && frame.Jdg[x][y] == 1) {
+		if (frame.CheckF(x, y)) {
+			frame.notPut(0);
 			nX = x;
 			nY = y;
-			HowStage.show();
-		} else PutS(x, y);
+			HowStage.showAndWait();
+		} else {
+			System.out.println("置けません！！");
+			frame.notPut(1);
+		}
+
+//		System.out.println(event.getEventType().toString());
+
+		//置けるか判定
+//		if (frame.Arr[x][y] == frame.getJun() && frame.Jdg[x][y] == 1) {
+//			nX = x;
+//			nY = y;
+//			HowStage.showAndWait();
+//			frame.drawS(x,y,frame.Bgc);
+//			frame.clearS(pX,pY);
+//		} else {
+//			//手数トータルを加算
+//			if (frame.getJun() == 0) BTcount += 1;
+//			else WTcount += 1;
+//
+//			PutS(x, y);
+//		}
 
 		//System.out.println("" + x + "," + y);
 
 	}
 
-	public void run(){
-
-	}
 
 	//ただ石を置くだけ
 	public void PutS(int x, int y) {
 		if (frame.CheckF(x, y)) {
-			System.out.println(pX + " " + pY);
+			//System.out.println(pX + " " + pY);
 			frame.notPut(0);
 			frame.pushS(x, y);
-			frame.drawS(x, y);
+			frame.drawS(x, y, frame.Bgc);
 			if (frame.Jdg[pX][pY] == counts) {
 				frame.setDF(pX, pY);
 				frame.clearS(pX, pY);
@@ -118,33 +144,29 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 	//勝利判定
 	public void Judge(int x, int y) {
 		int win = 4;    //勝利判定用変数
-		if (frame.Jdg[x][y] == 1) {
 
-			win = Jud.Judge(x, y);    //勝利判定　戻り値　0:黒勝　1:白勝　2:引分 3:続行
 
-			if (win == 0) {
-				winner.setHeaderText("黒の勝ち！");
-				result = winner.showAndWait();
-				if (result.get() == ButtonType.NEXT) frame.Win(win);
-			} else if (win == 1) {
-				winner.setHeaderText("白の勝ち！");
-				result = winner.showAndWait();
-				if (result.get() == ButtonType.NEXT) frame.Win(win);
-			} else if (win == 2) {
-				winner.setHeaderText("引き分け！");
-				result = winner.showAndWait();
-				if (result.get() == ButtonType.NEXT) frame.Win(win);
-			} else {
-				frame.ChangeP();
+		win = Jud.Judge(x, y);    //勝利判定　戻り値　0:黒勝　1:白勝　2:引分 3:続行
 
-			}
+		if (win == 0) {
+			winnerL.setText("黒の勝ち！");
+			ResultStage.showAndWait();
+			frame.Win(win);
+		} else if (win == 1) {
+			winnerL.setText("白の勝ち！");
+			ResultStage.showAndWait();
+			frame.Win(win);
+		} else if (win == 2) {
+			winnerL.setText("引き分け！");
+			ResultStage.showAndWait();
+			frame.Win(win);
 		} else {
-			System.out.println("置けません！！");
-			frame.notPut(1);
+			frame.ChangeP();
 
 		}
 	}
 
+	//自信選択ウィンドウ作成
 	public void createStage() {
 		Border Style = new Border(new BorderStroke(
 						Color.BLACK, BorderStrokeStyle.SOLID,
@@ -152,10 +174,58 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 						new BorderWidths(1.0)
 		));
 
+
+		//自信評価ウィンドウ
 		Label feeling = new Label("その一手、自信のほどは？");
 		feeling.setFont(new Font(35));
 
+		slider = new Slider(0, 100, 50);
+		slider.setOrientation(Orientation.HORIZONTAL);
+		slider.setSnapToTicks(false);
+		slider.setShowTickMarks(false);
+		slider.setMaxSize(500, 20);
+
+		grades = new Canvas(500, 50);
+		gc = grades.getGraphicsContext2D();
+		Stop[] stops = new Stop[]{new Stop(0, Color.BLUE),
+						new Stop(0.5, Color.LIGHTGREEN),
+						new Stop(1, Color.RED)
+		};
+
+		double[] xp = {0, 500, 500};
+		double[] yp = {50, 0, 50};
+
+
+		LinearGradient gra = new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE, stops);
+		gc.setFill(gra);
+//		gc.setFill(Color.WHITE);
+		gc.fillPolygon(xp, yp, 3);
+		//	gc.fillRect(0, 0, 500, 50);
+
 		Label grade = new Label("自信無し　＜ーーー　        　　　　　ーーー＞　自信あり");
+
+		Button next = new Button("  次へ  ");
+		next.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				if (frame.getJun() == 0) {
+					BTcount++;
+					Bcount++;
+				} else {
+					WTcount++;
+					Wcount++;
+				}
+
+				frame.Feel[nX][nY] = (int) slider.getValue();
+//				System.out.println(frame.Feel[nX][nY]);
+				frame.pushS(nX,nY);
+				frame.drawS(nX,nY,frame.gc);
+				Judge(nX, nY);
+				frame.ResetJ();
+				HowStage.close();
+			}
+		});
+		next.setPrefWidth(100);
 
 		g = new Button[5];
 		g[0] = new Button("と、とりあえずここで");
@@ -174,18 +244,27 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 		Buttons.setId("BBOX");
 		Buttons.setSpacing(5);
 		Buttons.setAlignment(Pos.CENTER);
-		Buttons.setMaxSize(600,100);
+		Buttons.setMaxSize(600, 100);
 
 		cancel.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				if (frame.getJun() == 0) {
+					BTcount++;
+				} else {
+					WTcount++;
+				}
 				HowStage.close();
 			}
 		});
+		cancel.setPrefWidth(100);
 
 		g[0].setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				if (frame.getJun() == 0) BFeel += 1;
+				else WFeel += 1;
+
 				frame.Feel[nX][nY] = 1;
 				Judge(nX, nY);
 				frame.ResetJ();
@@ -197,6 +276,8 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 		g[1].setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				if (frame.getJun() == 0) BFeel += 2;
+				else WFeel += 2;
 				frame.Feel[nX][nY] = 2;
 				Judge(nX, nY);
 				frame.ResetJ();
@@ -208,6 +289,8 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 		g[2].setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				if (frame.getJun() == 0) BFeel += 3;
+				else WFeel += 3;
 				frame.Feel[nX][nY] = 3;
 				Judge(nX, nY);
 				frame.ResetJ();
@@ -219,6 +302,8 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 		g[3].setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				if (frame.getJun() == 0) BFeel += 4;
+				else WFeel += 4;
 				frame.Feel[nX][nY] = 4;
 				Judge(nX, nY);
 				frame.ResetJ();
@@ -230,6 +315,8 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 		g[4].setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				if (frame.getJun() == 0) BFeel += 5;
+				else WFeel += 5;
 				frame.Feel[nX][nY] = 5;
 				Judge(nX, nY);
 				frame.ResetJ();
@@ -244,16 +331,89 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 			Buttons.getChildren().add(i);
 		}
 
-		MainBox.getChildren().addAll(feeling, grade, Buttons, cancel);
+		HBox select = new HBox();
+		select.setStyle("-fx-background-color: transparent");
+		select.getChildren().addAll(cancel, next);
+		select.setAlignment(Pos.CENTER);
+		select.setSpacing(20);
+		select.setPadding(new Insets(0, 30, 0, 30));
+
+		MainBox.getChildren().addAll(feeling, grade, grades, slider, select);
 
 		Scene feelingS = new Scene(MainBox, 700, 300);
 		feelingS.getStylesheets().addAll("gFX.css");
 		HowStage = new Stage();
 		HowStage.setScene(feelingS);
 		HowStage.initStyle(StageStyle.TRANSPARENT);
+		HowStage.initModality(Modality.APPLICATION_MODAL);
 		HowStage.getScene().getRoot().setStyle("-fx-background-color: transparent");
 
+
 	}
+
+	//リザルトウィンドウ作成
+	public void PopResult() {
+		AveCal();
+		Font font = new Font(20);
+		Font Large = new Font(30);
+		VBox vBox = new VBox();
+		vBox.setId("BBOX");
+		Label Kuro = new Label("黒");
+		Label Shiro = new Label("白");
+		GridPane grid = new GridPane();
+		grid.setAlignment(Pos.CENTER);
+		grid.setPadding(new Insets(10));
+		grid.setHgap(50);
+		grid.setVgap(20);
+
+		Kuro.setFont(Large);
+		Shiro.setFont(Large);
+		b1.setFont(font);
+		b2.setFont(font);
+		b3.setFont(font);
+		w1.setFont(font);
+		w2.setFont(font);
+		w3.setFont(font);
+
+		winnerL.setFont(Large);
+
+		next = new Button("次へ");
+		next.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				ResultStage.close();
+			}
+		});
+
+		b1.setText("" + BTcount);
+		b2.setText(String.format("%.2f", BTAve));
+		b3.setText(String.format("%.2f", BFAve));
+		w1.setText("" + WTcount);
+		w2.setText(String.format("%.2f", WTAve));
+		w3.setText(String.format("%.2f", WFAve));
+
+		grid.add(Kuro, 0, 0);
+		grid.add(Shiro, 1, 0);
+		grid.add(b1, 0, 1);
+		grid.add(b2, 0, 2);
+		grid.add(b3, 0, 3);
+		grid.add(w1, 1, 1);
+		grid.add(w2, 1, 2);
+		grid.add(w3, 1, 3);
+
+		vBox.setAlignment(Pos.CENTER);
+		vBox.getChildren().addAll(winnerL, ResultL, grid, next);
+
+		Scene Res = new Scene(vBox, 300, 300);
+		Res.getStylesheets().addAll("gFX.css");
+		ResultStage = new Stage();
+		ResultStage.setScene(Res);
+		//	ResultStage.initStyle(StageStyle.TRANSPARENT);
+		ResultStage.getScene().getRoot().setStyle("-fx-background-color: transparent");
+		ResultStage.initModality(Modality.APPLICATION_MODAL);
+
+	}
+
 
 	public int Msearchx(double x) {
 		int t;
@@ -267,6 +427,23 @@ public class GEvent implements EventHandler<MouseEvent>,Runnable {
 		t = (int) y / frame.getLong();
 		//System.out.println("" + t);
 		return t;
+	}
+
+	//各数値の平均を計算する
+	public void AveCal() {
+
+		BFAve = (double) BFeel / (double) Bcount;
+		BTAve = (double) BTcount / (double) Bcount;
+
+		WFAve = (double) WFeel / (double) Wcount;
+		WTAve = (double) WTcount / (double) Wcount;
+	}
+
+	//privateの数値全てを初期化
+	public void ResetAll(){
+		Bcount=BTcount=BFeel=Wcount=WTcount=WFeel=0;
+		BFAve=BTAve=WFAve=WTAve=0;
+
 	}
 
 

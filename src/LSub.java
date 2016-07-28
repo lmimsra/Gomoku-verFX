@@ -147,9 +147,8 @@ public class LSub {
 				alrt.setContentText("全ての内容をリセットしますよろしいですか？");
 				Optional<ButtonType> result = alrt.showAndWait();
 				if (result.get() == ButtonType.YES) {
-					Frame.Reset();
 					Reset();
-					setNotPut(2);
+
 				}
 			}
 		});
@@ -162,15 +161,7 @@ public class LSub {
 				alrt.setContentText("盤面をリセットしてこの回を無効にします");
 				Optional<ButtonType> result = alrt.showAndWait();
 				if (result.get() == ButtonType.YES) {
-					Frame.Reset();
-					setB();
-					setNotPut(2);
-					BTM=BTS=WTM=WTS=TimerM=TimerS=0;
-					BTL.setText("黒の使用時間(合計)" + String.format("%02d", BTM) + " : " + String.format("%02d", BTS));
-					WTL.setText(String.format("%02d", WTM) + " : " + String.format("%1$02d", WTS) + "白の使用時間(合計)");
-					NowTimer.setText(String.format("%02d", TimerM) + " : " + String.format("%1$02d", TimerS));
-
-
+					Restart();
 				}
 			}
 		});
@@ -313,17 +304,37 @@ public class LSub {
 		file = f;
 	}
 
+	//リスタート関数
+	public void Restart() {
+		Frame.Reset();
+		setB();
+		setNotPut(2);
+		BTM = BTS = WTM = WTS = TimerM = TimerS = 0;
+		BTL.setText("黒の使用時間(合計)" + String.format("%02d", BTM) + " : " + String.format("%02d", BTS));
+		WTL.setText(String.format("%02d", WTM) + " : " + String.format("%1$02d", WTS) + "白の使用時間(合計)");
+		NowTimer.setText(String.format("%02d", TimerM) + " : " + String.format("%1$02d", TimerS));
+	}
+
 	//リセット関数
 	public void Reset() {
+		Frame.Reset();
+		setNotPut(2);
 		BWin = WWin = Draw = 0;
 		txt.setText("");
 		log.setText("黒" + BWin + "勝　白" + WWin + "勝　引き分け" + Draw);
 		setB();
-		BTM=BTS=WTM=WTS=TimerM=TimerS=0;
+		BTM = BTS = WTM = WTS = TimerM = TimerS = 0;
 		BTL.setText("黒の使用時間(合計)" + String.format("%02d", BTM) + " : " + String.format("%02d", BTS));
 		WTL.setText(String.format("%02d", WTM) + " : " + String.format("%1$02d", WTS) + "白の使用時間(合計)");
 		NowTimer.setText(String.format("%02d", TimerM) + " : " + String.format("%1$02d", TimerS));
 
+	}
+
+	//勝利時用リセット関数
+	public void EndAndReset() {
+		log.setText("黒" + BWin + "勝　白" + WWin + "勝　引き分け" + Draw);
+		Frame.Reset();
+		setB();
 	}
 
 	//勝利者を表示させる
@@ -331,21 +342,15 @@ public class LSub {
 		if (w == 0) {
 			BWin++;
 			txt.insertText(0, "黒の勝ち！" + next);
-			log.setText("黒" + BWin + "勝　白" + WWin + "勝　引き分け" + Draw);
-			Frame.Reset();
-			setB();
+			Restart();
 		} else if (w == 1) {
 			WWin++;
 			txt.insertText(0, "白の勝ち！" + next);
-			log.setText("黒" + BWin + "勝　白" + WWin + "勝　引き分け" + Draw);
-			Frame.Reset();
-			setB();
+			Restart();
 		} else {
 			Draw++;
 			txt.insertText(0, "引き分け！" + next);
-			log.setText("黒" + BWin + "勝　白" + WWin + "勝　引き分け" + Draw);
-			Frame.Reset();
-			setB();
+			Restart();
 		}
 
 	}
@@ -356,7 +361,7 @@ public class LSub {
 		else notPut.setText("");
 	}
 
-
+	//手番変更：黒へ
 	public void setB() {
 		l2.setText("　　　黒");      //黒をセット
 		Jun = 0;
@@ -364,6 +369,7 @@ public class LSub {
 		NowTimer.setText(String.format("%02d", TimerM) + " : " + String.format("%1$02d", TimerS));
 	}
 
+	//手番変更：白へ
 	public void setW() {
 		l2.setText("　　　白");      //白をセット
 		Jun = 1;

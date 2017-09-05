@@ -97,7 +97,8 @@ public class GEvent implements EventHandler<MouseEvent> {
 			frame.notPut(0);
 			nX = x;
 			nY = y;
-			HowStage.show();
+//			HowStage.show();
+			PutS(nX,nY);
 		} else {
 			System.out.println("置けません！！");
 			frame.notPut(1);
@@ -131,7 +132,9 @@ public class GEvent implements EventHandler<MouseEvent> {
 			//System.out.println(pX + " " + pY);
 			frame.notPut(0);
 			frame.pushS(x, y);
-			frame.drawS(x, y, frame.Bgc);
+			frame.drawS(x, y, frame.gc);
+			Judge(x,y);
+			frame.ResetJ();
 			if (frame.Jdg[pX][pY] == counts) {
 				frame.setDF(pX, pY);
 				frame.clearS(pX, pY);

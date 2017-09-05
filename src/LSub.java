@@ -352,6 +352,7 @@ public class LSub {
 			txt.insertText(0, "引き分け！" + next);
 			Restart();
 		}
+		log.setText("黒" + BWin + "勝　白" + WWin + "勝　引き分け" + Draw);
 
 	}
 

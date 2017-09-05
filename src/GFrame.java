@@ -135,7 +135,7 @@ public class GFrame {
 	//リセット用
 	public void Reset() {
 		gc.clearRect(0, 0, 600, 600);
-		Mgc.clearRect(0,0,600,600);
+		Mgc.clearRect(0, 0, 600, 600);
 		CArray();
 		ResetJ();
 		Jun = 0;
@@ -229,7 +229,6 @@ public class GFrame {
 		return I;
 	}
 
-
 	//指定した点に石を描く
 	public void drawS(int x, int y, GraphicsContext G) {
 		if (Jun == 0) { //黒の番なら
@@ -251,7 +250,7 @@ public class GFrame {
 
 	//指定した点の石を消す
 	public void clearS(int x, int y) {
-		Mgc.clearRect(x * Long + margin-1, y * Long + margin-1, Long - 1 * margin, Long - 1 * margin);
+		Mgc.clearRect(x * Long + margin - 2, y * Long + margin - 2, Long - 1 * margin, Long - 1 * margin);
 
 	}
 
@@ -311,6 +310,25 @@ public class GFrame {
 
 	}
 
+	//Subからの値を送る
+	public int[] getTime() {
+		return Sub.sendTime();
+	}
+
+	//Fileからの値を送る
+	public int[] getValue() {
+		return Ev.getValue();
+	}
+
+	//時間をセットする
+	public void setTime(int[] t) {
+		Sub.setTime(t);
+	}
+
+	//白黒それぞれの進行度をセットする
+	public void setValues(int[] v) {
+		Ev.setValue(v);
+	}
 
 	//Subにイベントを反映
 	public void notPut(int i) {

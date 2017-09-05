@@ -14,6 +14,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import java.io.File;
 import java.io.IOException;
 
 public class GMain extends Application {
@@ -29,6 +30,20 @@ public class GMain extends Application {
 
 	@Override
 	public void start(Stage stage) throws IOException {
+		String home = System.getProperty("user.home");
+
+		System.out.println(home);
+		String sp = File.separator;
+		File newFile = new File(home+sp+"AppData"+sp+"Roaming"+sp+"FieldFile");
+		File newFile2 = new File(home+sp+"FieldFile");
+		String os = System.getProperty("os.name");
+		if (os.startsWith("linux") || os.startsWith("M][ac OS X")) {
+			if (!newFile2.exists()) newFile2.mkdir();
+		}else if (os.startsWith("Windows 10")|| os.startsWith("Windows 8") || os.startsWith("Windows 7")){
+			if (!newFile.exists()) newFile.mkdir();
+		}
+		System.out.println(os);
+
 		Stage cstage = stage;
 		flame = new GFrame();
 		sub = new LSub();

@@ -66,6 +66,7 @@ public class GEvent implements EventHandler<MouseEvent> {
 	//リザルトステージ
 	Stage ResultStage;
 	Button next;
+	GridPane grid = new GridPane();
 	Label winnerL = new Label("");
 	Label ResultL = new Label("");
 	Label b1 = new Label("");
@@ -83,6 +84,7 @@ public class GEvent implements EventHandler<MouseEvent> {
 		pX = pY = 0;
 		createStage();
 		PopResult();
+
 	}
 
 	@Override
@@ -95,7 +97,7 @@ public class GEvent implements EventHandler<MouseEvent> {
 			frame.notPut(0);
 			nX = x;
 			nY = y;
-			HowStage.showAndWait();
+			HowStage.show();
 		} else {
 			System.out.println("置けません！！");
 			frame.notPut(1);
@@ -150,14 +152,17 @@ public class GEvent implements EventHandler<MouseEvent> {
 
 		if (win == 0) {
 			winnerL.setText("黒の勝ち！");
+			UpdateResult();
 			ResultStage.showAndWait();
 			frame.Win(win);
 		} else if (win == 1) {
 			winnerL.setText("白の勝ち！");
+			UpdateResult();
 			ResultStage.showAndWait();
 			frame.Win(win);
 		} else if (win == 2) {
 			winnerL.setText("引き分け！");
+			UpdateResult();
 			ResultStage.showAndWait();
 			frame.Win(win);
 		} else {
@@ -217,9 +222,11 @@ public class GEvent implements EventHandler<MouseEvent> {
 				}
 
 				frame.Feel[nX][nY] = (int) slider.getValue();
+				if (frame.getJun() == 0) BFeel += frame.Feel[nX][nY];
+				else WFeel += frame.Feel[nX][nY];
 //				System.out.println(frame.Feel[nX][nY]);
-				frame.pushS(nX,nY);
-				frame.drawS(nX,nY,frame.gc);
+				frame.pushS(nX, nY);
+				frame.drawS(nX, nY, frame.gc);
 				Judge(nX, nY);
 				frame.ResetJ();
 				HowStage.close();
@@ -346,6 +353,8 @@ public class GEvent implements EventHandler<MouseEvent> {
 		HowStage.setScene(feelingS);
 		HowStage.initStyle(StageStyle.TRANSPARENT);
 		HowStage.initModality(Modality.APPLICATION_MODAL);
+		HowStage.setX(100);
+		HowStage.setY(100);
 		HowStage.getScene().getRoot().setStyle("-fx-background-color: transparent");
 
 
@@ -353,14 +362,16 @@ public class GEvent implements EventHandler<MouseEvent> {
 
 	//リザルトウィンドウ作成
 	public void PopResult() {
-		AveCal();
 		Font font = new Font(20);
 		Font Large = new Font(30);
 		VBox vBox = new VBox();
 		vBox.setId("BBOX");
 		Label Kuro = new Label("黒");
 		Label Shiro = new Label("白");
-		GridPane grid = new GridPane();
+		Label Exp1 = new Label("時間");
+		Label Exp2 = new Label("１手の平均時間");
+		Label Exp3 = new Label("自信の平均");
+
 		grid.setAlignment(Pos.CENTER);
 		grid.setPadding(new Insets(10));
 		grid.setHgap(50);
@@ -392,19 +403,23 @@ public class GEvent implements EventHandler<MouseEvent> {
 		w2.setText(String.format("%.2f", WTAve));
 		w3.setText(String.format("%.2f", WFAve));
 
-		grid.add(Kuro, 0, 0);
-		grid.add(Shiro, 1, 0);
-		grid.add(b1, 0, 1);
-		grid.add(b2, 0, 2);
-		grid.add(b3, 0, 3);
-		grid.add(w1, 1, 1);
-		grid.add(w2, 1, 2);
-		grid.add(w3, 1, 3);
+
+		grid.add(Kuro, 1, 0);
+		grid.add(Shiro, 2, 0);
+		grid.add(Exp1, 0, 1);
+		grid.add(Exp2, 0, 2);
+		grid.add(Exp3, 0, 3);
+		grid.add(b1, 1, 1);
+		grid.add(b2, 1, 2);
+		grid.add(b3, 1, 3);
+		grid.add(w1, 2, 1);
+		grid.add(w2, 2, 2);
+		grid.add(w3, 2, 3);
 
 		vBox.setAlignment(Pos.CENTER);
 		vBox.getChildren().addAll(winnerL, ResultL, grid, next);
 
-		Scene Res = new Scene(vBox, 300, 300);
+		Scene Res = new Scene(vBox, 400, 300);
 		Res.getStylesheets().addAll("gFX.css");
 		ResultStage = new Stage();
 		ResultStage.setScene(Res);
@@ -414,6 +429,20 @@ public class GEvent implements EventHandler<MouseEvent> {
 
 	}
 
+	public void UpdateResult() {
+		AveCal();
+		int[] result;  // 0:トータル, 1:黒, 2:白
+		result = frame.getTime();
+
+		b1.setText(result[2] + "分" + result[3] + "秒");
+		b2.setText(String.format("%.2f", BTAve));
+		b3.setText(String.format("%.2f", BFAve));
+		w1.setText("" + result[4] + "分" + result[5] + "秒");
+		w2.setText(String.format("%.2f", WTAve));
+		w3.setText(String.format("%.2f", WFAve));
+
+
+	}
 
 	public int Msearchx(double x) {
 		int t;
@@ -431,20 +460,33 @@ public class GEvent implements EventHandler<MouseEvent> {
 
 	//各数値の平均を計算する
 	public void AveCal() {
+		int[] result;  // 0:トータル, 1,2:黒, 3,4:白
+		result = frame.getTime();
 
 		BFAve = (double) BFeel / (double) Bcount;
-		BTAve = (double) BTcount / (double) Bcount;
+		BTAve = (double) (result[2] * 60 + result[3]) / (double) Bcount;
 
 		WFAve = (double) WFeel / (double) Wcount;
-		WTAve = (double) WTcount / (double) Wcount;
+		WTAve = (double) (result[4] * 60 + result[5]) / (double) Wcount;
 	}
 
 	//privateの数値全てを初期化
-	public void ResetAll(){
-		Bcount=BTcount=BFeel=Wcount=WTcount=WFeel=0;
-		BFAve=BTAve=WFAve=WTAve=0;
+	public void ResetAll() {
+		Bcount = BTcount = BFeel = Wcount = WTcount = WFeel = 0;
+		BFAve = BTAve = WFAve = WTAve = 0;
 
 	}
 
+	//privateの値を渡す
+	public int[] getValue() {
+		int[] Pvalue = {Bcount, BFeel, Wcount, WFeel};
+		return Pvalue;
+	}
 
+	public void setValue(int[] v) {
+		Bcount = v[0];
+		BFeel = v[1];
+		Wcount = v[2];
+		WFeel = v[3];
+	}
 }

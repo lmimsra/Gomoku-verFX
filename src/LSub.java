@@ -355,6 +355,31 @@ public class LSub {
 
 	}
 
+	//時計情報を送る
+	public int[] sendTime() {
+		int[] result = new int[6];  // 0:トータル, 1:黒, 2:白
+		result[0] = TimerM;
+		result[1] = TimerS;
+		result[2] = BTM;
+		result[3] = BTS;
+		result[4] = WTM;
+		result[5] = WTS;
+		return result;
+	}
+
+	public void setTime(int[] t) {
+		TimerM = t[0];
+		TimerS = t[1];
+		BTM = t[2];
+		BTS = t[3];
+		WTM = t[4];
+		WTS = t[5];
+		BTL.setText("黒の使用時間(合計)" + String.format("%02d", BTM) + " : " + String.format("%1$02d", BTS));
+		WTL.setText(String.format("%02d", WTM) + " : " + String.format("%1$02d", WTS) + "白の使用時間(合計)");
+		NowTimer.setText(String.format("%02d", TimerM) + " : " + String.format("%1$02d", TimerS));
+
+	}
+
 	//置けない時メッセージを表示,おけるとき非表示
 	public void setNotPut(int i) {
 		if (i == 1) notPut.setText("そこは置けませんよぉぉ？");

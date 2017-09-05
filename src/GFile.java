@@ -40,7 +40,7 @@ public class GFile {
 	BufferedReader Fread;
 	LocalDate Date;
 	LocalTime Time;
-
+	String Dpath;
 
 	GFile(GFrame f, LSub s, GMain m) throws IOException {
 		frame = f;
@@ -49,6 +49,12 @@ public class GFile {
 		sub.getGFile(this);
 		sp = File.separator;
 
+		String os = System.getProperty("os.name");
+		if (os.startsWith("linux") || os.startsWith("Mac OS X")) {
+			Dpath = System.getProperty("user.home") + sp + "FieldFile" + sp;
+		} else if (os.startsWith("Windows 10") || os.startsWith("Windows 8") || os.startsWith("Windows 7") || os.startsWith("Windows Vista") || os.startsWith("Windows XP")) {
+			Dpath = System.getProperty("user.home") + sp + "AppData" + sp + "Roaming" + sp + "FieldFile" + sp;
+		}
 
 	}
 
@@ -61,14 +67,16 @@ public class GFile {
 		Fread = new BufferedReader(new FileReader(file));
 		String str;
 		int inputI;
-		//System.out.println("1: "+Fread.readLine());
-		//System.out.println("2: "+Fread.readLine());
+		int[] value = new int[4];
+		int[] time = new int[6];
+		//	System.out.println("1: "+Fread.readLine());
+		//	System.out.println("2: "+Fread.readLine());
 
 		try {
 			frame.drawF();
 			if (Fread.readLine().equals("GomokuFX")) {
 				int Jun = Integer.parseInt(Fread.readLine());
-				frame.gc.clearRect(0,0,600,600);
+				frame.gc.clearRect(0, 0, 600, 600);
 				for (int i = 0; i < frame.getMasu(); i++) {
 					for (int j = 0; j < frame.getMasu(); j++) {
 						str = Fread.readLine();
@@ -84,11 +92,26 @@ public class GFile {
 					}
 
 				}
+				for (int i = 0; i < 4; i++) {
+					str = Fread.readLine();
+					System.out.println(str);
+					value[i] = Integer.parseInt(str);
+				}
+
+				for (int i = 0; i < 6; i++) {
+					str = Fread.readLine();
+					System.out.println(str);
+					time[i] = Integer.parseInt(str);
+				}
+
 				frame.setJun(Jun);
+				frame.setTime(time);
+				frame.setValues(value);
 			}
 		} catch (Exception e) {
 			Alert alert = new Alert(Alert.AlertType.WARNING, "", ButtonType.OK);
 			alert.setContentText("選択されたファイルは形式が正しくないです");
+			Fread.close();
 		}
 
 
@@ -99,11 +122,14 @@ public class GFile {
 	//ファイル出力用
 	public void outputFile(String Filename) throws IOException {
 
-		Date = LocalDate.now();
-		Time = LocalTime.now();
+//		Date = LocalDate.now();
+//		Time = LocalTime.now();
+		int[] value = frame.getValue();
+		int[] time = frame.getTime();
+
 		//FileName = Date.toString() + "-" + Time.getHour() + "-" + Time.getMinute() + "-" + Time.getSecond();
 
-		file = new File("./src/FieldFile/" + Filename + ".txt");
+		file = new File(Dpath + Filename + ".txt");
 		file.createNewFile();
 		Fwrite = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8")));
 		Fwrite.println("GomokuFX");
@@ -115,6 +141,15 @@ public class GFile {
 			}
 
 		}
+
+		for (int v : value) {
+			Fwrite.println(v);
+		}
+
+		for (int t : time) {
+			Fwrite.println(t);
+		}
+
 		Fwrite.close();
 	}
 
@@ -146,7 +181,7 @@ public class GFile {
 
 		//ファイル読み込み
 		String path = "./src/FieldFile/";
-		File listFile = new File(path);
+		File listFile = new File(Dpath);
 		File[] list = listFile.listFiles();
 		ListView<String> listView = new ListView();
 		ObservableList<String> item = FXCollections.observableArrayList();
@@ -169,7 +204,7 @@ public class GFile {
 			public void handle(ActionEvent event) {
 				String str = listView.getFocusModel().getFocusedItem();
 				try {
-					inputFile(path + "" + str);
+					inputFile(Dpath + "" + str);
 					InputStage.close();
 				} catch (Exception e) {
 					if (e.getMessage() == "null")
@@ -213,7 +248,6 @@ public class GFile {
 
 	}
 
-
 	//ファイル出力用ウィンドウ
 	public void setOutputStage() {
 
@@ -251,8 +285,8 @@ public class GFile {
 			@Override
 			public void handle(ActionEvent event) {
 				try {
-					File file = new File("./src/FieldFile/" + txt.getText() + ".txt");
-					System.out.println("./src/FieldFile/" + txt.getText() + ".txt");  //参照ファイルをチェック
+					File file = new File(Dpath + txt.getText() + ".txt");
+					System.out.println(Dpath + txt.getText() + ".txt");  //参照ファイルをチェック
 					if (file.exists()) {
 						error.setText("そのファイルはすでに存在します");              //ファイルがすでに存在している時の表示
 					} else {
@@ -297,7 +331,7 @@ public class GFile {
 		OutputStage.show();
 	}
 
-	//ファイル編集用ウィンドウ
+	//ファイル編集用ウィンドウ(実装途中)
 	public void setEditStage() {
 		//ウィンドウの外枠スタイル設定
 		Border Style = new Border(new BorderStroke(
